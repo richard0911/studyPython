@@ -1,12 +1,15 @@
+# _*_ coding:utf-8 _*_
+
 import curses
 from random import randrange, choice
 from collections import defaultdict
 
-actions = ['Up', 'Down', 'Left', 'right', 'Reset', 'Exit']
+actions = ['Up', 'Down', 'Left', 'Right', 'Reset', 'Exit']
 
 letter_codes = [ord(ch) for ch in 'WASDRQwasdrq']
 
 actions_dict = dict(zip(letter_codes, actions * 2))
+
 
 def get_user_action(keyboard):
     char = 'N'
@@ -14,11 +17,14 @@ def get_user_action(keyboard):
         char = keyboard.getch()
     return actions_dict[char]
 
+
 def transpose(field):
     return [list(row) for row in zip(*field)]
 
+
 def invert(field):
     return [row[::-1] for row in field]
+
 
 class GameField(object):
     def __init__(self, height=4, width=4, win=2048):
@@ -26,12 +32,12 @@ class GameField(object):
         self.width = width
         self.win_value = win
         self.score = 0
-        self.highscore = 0
+        self.highScore = 0
         self.reset()
 
     def reset(self):
-        if self.score > self.highscore:
-            self.highscore = self.score
+        if self.score > self.highScore:
+            self.highScore = self.score
         self.score = 0
         self.field = [[0 for i in range(self.width)]
                       for j in range(self.height)]
@@ -55,7 +61,7 @@ class GameField(object):
                         self.score += 2 * row[i]
                         pair = False
                     else:
-                        if i + 1 < len(row) and row[i] ==row[i + 1]:
+                        if i + 1 < len(row) and row[i] == row[i + 1]:
                             pair = True
                             new_row.append(0)
                         else:
@@ -75,7 +81,6 @@ class GameField(object):
             transpose(moves['Left'](transpose(field)))
         moves['Down'] = lambda field:\
             transpose(moves['Right'](transpose(field)))
-
 
         if direction in moves:
             if self.move_is_possible(direction):
@@ -102,31 +107,32 @@ class GameField(object):
 
         def draw_hor_separator():
             line = '+' + ('+-------' * self.width + '+')[1:]
-            separator = defaultdict(lambda : line)
+            separator = defaultdict(lambda: line)
             if not hasattr(draw_hor_separator, 'counter'):
                 draw_hor_separator.counter = 0
             cast(separator[draw_hor_separator.counter])
             draw_hor_separator.counter += 1
 
         def draw_row(row):
-            cast(''.join('|{:^5}'.format(num) if num > 0 else '|'
+            cast(''.join('|{:^7}'.format(num) if num > 0 else '|       '
                          for num in row) + '|')
-            screen.clear()
-            cast('SCORE:' + str(self.score))
-            if 0 != self.highscore:
-                cast('HIGHSCORE:' + str(self.highscore))
-            for row in self.field:
-                draw_hor_separator()
-                draw_row(row)
+
+        screen.clear()
+        cast('SCORE:' + str(self.score))
+        if 0 != self.highScore:
+            cast('HIGHSCORE:' + str(self.highScore))
+        for row in self.field:
             draw_hor_separator()
-            if self.is_win():
-                cast(win_string)
+            draw_row(row)
+        draw_hor_separator()
+        if self.is_win():
+            cast(win_string)
+        else:
+            if self.is_gameover():
+                cast(gameover_string)
             else:
-                if self.is_gameover():
-                    cast(gameover_string)
-                else:
-                    cast(help_string1)
-            cast(help_string2)
+                cast(help_string1)
+        cast(help_string2)
 
     def spawn(self):
         new_element = 4 if randrange(100) > 89 else 2
@@ -140,7 +146,7 @@ class GameField(object):
             def change(i):
                 if row[i] == 0 and row[i + 1] != 0:
                         return True
-                if row[i] !=0 and row[i + 1] == row[i]:
+                if row[i] != 0 and row[i + 1] == row[i]:
                         return True
                 return False
 
@@ -161,6 +167,7 @@ class GameField(object):
         else:
             return False
 
+
 def main(stdscr):
     def init():
         game_field.reset()
@@ -170,7 +177,7 @@ def main(stdscr):
         game_field.draw(stdscr)
 
         action = get_user_action(stdscr)
-        responses = defaultdict(lambda : state)
+        responses = defaultdict(lambda: state)
         responses['Restart'], responses['Exit'] = 'Init', 'Exit'
         return responses[action]
 
@@ -178,7 +185,7 @@ def main(stdscr):
         game_field.draw(stdscr)
         action = get_user_action(stdscr)
 
-        if action == 'Restart':
+        if action == 'Reset':
             return 'Init'
         if action == 'Exit':
             return 'Exit'
@@ -198,7 +205,7 @@ def main(stdscr):
 
     curses.use_default_colors()
 
-    game_field = GameField(win=32)
+    game_field = GameField(win=2048)
 
     state = 'Init'
 
@@ -206,3 +213,5 @@ def main(stdscr):
         state = state_actions[state]()
 
 curses.wrapper(main)
+
+
