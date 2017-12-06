@@ -4,13 +4,15 @@ import curses
 from random import randrange, choice
 from collections import defaultdict
 
-actions = ['Up', 'Down', 'Left', 'Right', 'Reset', 'Exit']
+# 定义行为及对应行为键位列表
+actions = ['Up', 'Left', 'Down', 'Right', 'Reset', 'Exit']
 
 letter_codes = [ord(ch) for ch in 'WASDRQwasdrq']
 
 actions_dict = dict(zip(letter_codes, actions * 2))
 
 
+# 绑定行为到按键
 def get_user_action(keyboard):
     char = 'N'
     while char not in letter_codes:
@@ -18,6 +20,7 @@ def get_user_action(keyboard):
     return actions_dict[char]
 
 
+# 矩阵转置
 def transpose(field):
     return [list(row) for row in zip(*field)]
 
@@ -26,6 +29,7 @@ def invert(field):
     return [row[::-1] for row in field]
 
 
+# 游戏主体类
 class GameField(object):
     def __init__(self, height=4, width=4, win=2048):
         self.height = height
@@ -34,6 +38,7 @@ class GameField(object):
         self.score = 0
         self.highScore = 0
         self.reset()
+        self.field = None
 
     def reset(self):
         if self.score > self.highScore:
@@ -54,7 +59,7 @@ class GameField(object):
 
             def merge(row):
                 pair = False
-                new_row =[]
+                new_row = []
                 for i in range(len(row)):
                     if pair:
                         new_row.append(2 * row[i])
@@ -72,14 +77,14 @@ class GameField(object):
 
             return tighten(merge(tighten(row)))
 
-        moves = {}
-        moves['Left'] = lambda field:\
+        moves = dict()
+        moves['Left'] = lambda field: \
             [move_row_left(row) for row in field]
-        moves['Right'] = lambda field:\
+        moves['Right'] = lambda field: \
             invert(moves['Left'](invert(field)))
-        moves['Up'] = lambda field:\
+        moves['Up'] = lambda field: \
             transpose(moves['Left'](transpose(field)))
-        moves['Down'] = lambda field:\
+        moves['Down'] = lambda field: \
             transpose(moves['Right'](transpose(field)))
 
         if direction in moves:
@@ -137,30 +142,30 @@ class GameField(object):
     def spawn(self):
         new_element = 4 if randrange(100) > 89 else 2
         (i, j) = choice([(i, j) for i in range(self.width)
-                        for j in range(self.height)
-                        if self.field[i][j] == 0])
+                         for j in range(self.height)
+                         if self.field[i][j] == 0])
         self.field[i][j] = new_element
 
     def move_is_possible(self, direction):
         def row_is_left_movable(row):
             def change(i):
                 if row[i] == 0 and row[i + 1] != 0:
-                        return True
+                    return True
                 if row[i] != 0 and row[i + 1] == row[i]:
-                        return True
+                    return True
                 return False
 
             return any(change(i) for i in range(len(row) - 1))
 
-        check = {}
-        check['Left'] = lambda field:\
-                any(row_is_left_movable(row) for row in field)
-        check['Right'] = lambda field:\
-                check['Left'](invert(field))
-        check['Up'] = lambda field:\
-                check['Left'](transpose(field))
-        check['Down'] = lambda field:\
-                check['Right'](transpose(field))
+        check = dict()
+        check['Left'] = lambda field: \
+            any(row_is_left_movable(row) for row in field)
+        check['Right'] = lambda field: \
+            check['Left'](invert(field))
+        check['Up'] = lambda field: \
+            check['Left'](transpose(field))
+        check['Down'] = lambda field: \
+            check['Right'](transpose(field))
 
         if direction in check:
             return check[direction](self.field)
@@ -168,6 +173,7 @@ class GameField(object):
             return False
 
 
+# 主线逻辑
 def main(stdscr):
     def init():
         game_field.reset()
@@ -196,6 +202,7 @@ def main(stdscr):
                 return 'GameOver'
         return 'Game'
 
+    # 用dict保存对应方法调用
     state_actions = {
         'Init': init,
         'Win': lambda: not_game('Win'),
@@ -212,6 +219,5 @@ def main(stdscr):
     while state != 'Exit':
         state = state_actions[state]()
 
+
 curses.wrapper(main)
-
-
