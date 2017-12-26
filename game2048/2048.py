@@ -3,8 +3,8 @@
 import curses
 from random import randrange, choice
 from collections import defaultdict
-
-actions = ['Up', 'Down', 'Left', 'Right', 'Reset', 'Exit']
+#定义操作行为，用ASCII码绑定到对应键位
+actions = ['Up', 'Left', 'Down', 'Right', 'Reset', 'Exit']
 
 letter_codes = [ord(ch) for ch in 'WASDRQwasdrq']
 
@@ -168,6 +168,7 @@ class GameField(object):
             return False
 
 
+#主干逻辑
 def main(stdscr):
     def init():
         game_field.reset()

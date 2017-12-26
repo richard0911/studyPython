@@ -1,17 +1,21 @@
 #计算素数
+import time
 
+start = time.clock()
 
 prime = [] #使用List保存素数
 prime1 = [1,]  # 1能整除所有数，特殊排除
 
-for i in range(2,1000):
+for i in range(2,100000,2):
     for j in prime:#所有合数都能被一个素数整除
         if (i % j == 0):
             break
     else:
         prime.append(i)
-print(prime)
-print(len(prime))
+
+end =time.clock()
+print(end - start)
+#print(prime)
 
 '''关于循环else语句判断，
     else是在循环正常完成后才会被执行，
